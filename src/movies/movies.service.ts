@@ -1,26 +1,37 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Movie, MovieDocument } from 'src/schemas/movie.schema';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 
 @Injectable()
 export class MoviesService {
-  create(createMovieDto: CreateMovieDto) {
-    return 'This action adds a new movie';
+  constructor(
+    @InjectModel(Movie.name) private movieModel: Model<MovieDocument>,
+  ) {}
+
+  async create(createMovieDto: CreateMovieDto): Promise<Movie> {
+    const createdMovie = new this.movieModel(createMovieDto);
+    return createdMovie.save();
   }
 
   findAll() {
-    return `This action returns all movies`;
+    return this.movieModel.find().exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} movie`;
+  findOne(title: string) {
+    return this.movieModel.findOne({ title });
   }
 
-  update(id: number, updateMovieDto: UpdateMovieDto) {
-    return `This action updates a #${id} movie`;
+  update(title: string, updateMovieDto: UpdateMovieDto) {
+    return this.movieModel.updateOne(
+      { title },
+      { $set: { ...updateMovieDto } },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} movie`;
+  remove(title: string) {
+    return this.movieModel.deleteOne({ title });
   }
 }
